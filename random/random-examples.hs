@@ -1,14 +1,20 @@
 -- Random - http://hackage.haskell.org/package/random
 
-import System.Random (getStdRandom, randomR)
+import System.Random (getStdRandom, randomR, random)
 
 -- From package documentation
 rollDice :: IO Int
-rollDice = getStdRandom (randomR (1, 6))
+rollDice = getStdRandom $ randomR (1, 6)
 
 -- Add dice rolls together (shows how to unwrap the IO Monad to use the underlying data)
 rollTwoDice :: IO Int
 rollTwoDice = rollDice >>= (\i1 -> rollDice >>= (\i2 -> return $ i1 + i2) )
+
+-- Alternate syntax, without parentheses
+rollTwoDice' :: IO Int
+rollTwoDice' = rollDice >>=
+  \i1 -> rollDice >>=
+  \i2 -> return $ i1 + i2
 
 -- Roll two dice (syntantic sugar edition)
 rollTwoDice_Sugar :: IO Int
@@ -27,10 +33,31 @@ rollTwoDice_Sugar = do
 
 -- Basic functions for producing various random types
 randomIntRange :: (Int, Int) -> IO Int
-randomIntRange (a, b) = getStdRandom (randomR (a, b))
+randomIntRange (a, b) = getStdRandom $ randomR (a, b)
 
-randomChar :: Char
-randomChar = 'h'
+-- Random Int based on the Int default range
+randomInt :: IO Int
+randomInt = getStdRandom random
+
+-- Random Int based on the Char default range
+randomChar :: IO Char
+randomChar = getStdRandom random
+
+-- Simple way to get an ASCII character from a range
+randomASCIIChar :: IO Char
+randomASCIIChar = getStdRandom $ randomR ('0', 'z')
+
+-- Get a random item out of a list
+selectRandomElement :: [a] -> IO a
+selectRandomElement [] = error "Cannot select an element from an empty list."
+selectRandomElement list = randomIntWithinRange >>=
+  \r -> return $ list !! r
+  where
+  randomIntWithinRange = getStdRandom $ randomR (0, length list)
+
+-- Example of getting a random a-zA-Z 
+getRandomLetter :: IO Char
+getRandomLetter = selectRandomElement "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 main :: IO ()
 main = do
