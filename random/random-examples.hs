@@ -1,8 +1,6 @@
 -- Random - http://hackage.haskell.org/package/random
 
 import System.Random (getStdRandom, randomR, random)
-import Control.Applicative ((<*>))
-import Data.Functor ((<$>))
 
 -- From package documentation
 rollDice :: IO Int
