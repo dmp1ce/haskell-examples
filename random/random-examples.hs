@@ -1,6 +1,8 @@
 -- Random - http://hackage.haskell.org/package/random
 
 import System.Random (getStdRandom, randomR, random)
+import Control.Applicative ((<*>))
+import Data.Functor ((<$>))
 
 -- From package documentation
 rollDice :: IO Int
@@ -53,11 +55,27 @@ selectRandomElement [] = error "Cannot select an element from an empty list."
 selectRandomElement list = randomIntWithinRange >>=
   \r -> return $ list !! r
   where
-  randomIntWithinRange = getStdRandom $ randomR (0, length list)
+  randomIntWithinRange = getStdRandom $ randomR (0, length list - 1)
 
 -- Example of getting a random a-zA-Z 
 getRandomLetter :: IO Char
-getRandomLetter = selectRandomElement "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+getRandomLetter = selectRandomElement "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+
+-- Example of getting a random string composed of a-zA-Z
+getRandomString :: Int -> IO String
+getRandomString size = addRandomLettersToString "" size
+  where
+  addRandomLettersToString :: String -> Int -> IO String
+  addRandomLettersToString s n
+    | length s >= n = return s
+    | length s < n = do
+      a <- getRandomLetter
+      b <- addRandomLettersToString (s ++ a:[]) n
+      return b
+  addRandomLetterToString :: String -> IO String
+  addRandomLetterToString s = do
+    a <- getRandomLetter
+    return (s ++ a:[])
 
 main :: IO ()
 main = do
