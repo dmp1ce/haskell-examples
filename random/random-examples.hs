@@ -1,6 +1,6 @@
 -- Random - http://hackage.haskell.org/package/random
 
-import System.Random (getStdRandom, randomR, random)
+import System.Random (getStdRandom, randomR, random, randomRs, newStdGen)
 
 -- From package documentation
 rollDice :: IO Int
@@ -55,9 +55,11 @@ selectRandomElement list = randomIntWithinRange >>=
   where
   randomIntWithinRange = getStdRandom $ randomR (0, length list - 1)
 
+randomLetterRange = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 -- Example of getting a random a-zA-Z 
 getRandomLetter :: IO Char
-getRandomLetter = selectRandomElement "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+getRandomLetter = selectRandomElement randomLetterRange
 
 -- Example of getting a random string composed of a-zA-Z
 getRandomString :: Int -> IO String
@@ -74,6 +76,20 @@ getRandomString size = addRandomLettersToString "" size
   addRandomLetterToString s = do
     a <- getRandomLetter
     return (s ++ a:[])
+
+-- Alternate example of getting a random string composed of a-zA-Z
+getRandomString' :: Int -> IO String
+getRandomString' size = getRandomElementsFromRange size randomLetterRange
+
+-- Alternate way of selecting a random elements from a passed in range
+getRandomElementsFromRange :: Int -> [a] -> IO [a]
+getRandomElementsFromRange size [] = error "Range is empty"
+getRandomElementsFromRange size range = do
+  -- Create the random number generator
+  g <- newStdGen
+  -- Get a list of random integers which will map the random elements to choose
+  let randomInts = take size $ randomRs (0, length range - 1) g
+  return $ map (\n -> range !! n) randomInts
 
 main :: IO ()
 main = do
